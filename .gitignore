@@ -1,3 +1,5 @@
 # Exclude Data
 *.csv
 *.json
+*.png
+*.html
