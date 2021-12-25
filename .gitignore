@@ -4,3 +4,4 @@
 *.png
 *.html
 results/
+.ipynb_checkpoints
