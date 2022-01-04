@@ -3,6 +3,7 @@
 *.json
 *.png
 *.html
+*.pkl
 results/
 */.ipynb_checkpoints/*
 .ipynb_checkpoints/*
