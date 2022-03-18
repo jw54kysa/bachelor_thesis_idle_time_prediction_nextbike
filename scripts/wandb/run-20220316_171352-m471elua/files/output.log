@@ -1,0 +1,13 @@
+[34m[1mwandb[39m[22m:
+[34m[1mwandb[39m[22m: Plotting MLPClassifier.
+[34m[1mwandb[39m[22m: Logged feature importances.
+/usr/local/Caskroom/miniconda/base/envs/geobike/lib/python3.9/site-packages/sklearn/model_selection/_validation.py:681: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
+  estimator.fit(X_train, y_train, **fit_params)
+/usr/local/Caskroom/miniconda/base/envs/geobike/lib/python3.9/site-packages/sklearn/model_selection/_validation.py:681: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
+  estimator.fit(X_train, y_train, **fit_params)
+[34m[1mwandb[39m[22m: [33mWARNING[39m wandb.plots.* functions are deprecated and will be removed in a future release. Please use wandb.plot.* instead.
+[34m[1mwandb[39m[22m: [33mWARNING[39m Calling wandb.login() after wandb.init() has no effect.
+(2037726, 11)
+(2037726, 1)
+(509432, 11)
+(509432, 1)
