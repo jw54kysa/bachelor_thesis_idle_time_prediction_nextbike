@@ -9,3 +9,4 @@ scripts/.ipynb_checkpoints/
 *.iml
 # WandB
 scripts/wandb/
+*/wandb/
