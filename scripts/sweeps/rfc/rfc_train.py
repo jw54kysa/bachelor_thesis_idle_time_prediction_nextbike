@@ -4,6 +4,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import zero_one_loss
+from sklearn.preprocessing import StandardScaler
 
 WANDB_PROJECT_NAME = "rfc_hyperparam_opt"
 
@@ -15,6 +16,10 @@ with wandb.init(project=WANDB_PROJECT_NAME):
 
     X = df[Predictors].values
     y = df[TargetVariable].values
+
+    PredictorScaler = StandardScaler()
+    PredictorScalerFit = PredictorScaler.fit(X)
+    X = PredictorScalerFit.transform(X)
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
