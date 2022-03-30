@@ -40,7 +40,7 @@ with wandb.init(project=WANDB_PROJECT_NAME):
     mlpc.fit(X_train, y_train.ravel())
     y_pred = mlpc.predict(X_test)
 
-    # print(mlpc.score(X_test, y_test))
+    # print(mlp_classification.score(X_test, y_test))
 
     # log data to wandb
     wandb.log({"conf_mat": wandb.plot.confusion_matrix(y_true=y_test.ravel(), preds=y_pred.ravel())})
