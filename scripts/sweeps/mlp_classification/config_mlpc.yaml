@@ -7,9 +7,9 @@ metric:
 parameters:
   hidden_layer_sizes:
     values:
-      1: !!python/tuple [32,32]
-      2: !!python/tuple [64,64]
-      3: !!python/tuple [128,128]
+      1: [32,32]
+      2: [64,64]
+      3: [128,128]
   activation:
     values: ['identity', 'logistic', 'tanh', 'relu']
   solver:
