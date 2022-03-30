@@ -22,20 +22,20 @@ with wandb.init(project=WANDB_PROJECT_NAME):
     rfc = RandomForestClassifier(
         criterion=config.criterion,
         bootstrap=config.bootstrap,
-        max_depth = config.max_depth,
-        max_features = config.max_features,
-        min_samples_leaf = config.min_samples_leaf,
-        min_samples_split = config.min_samples_split,
-        n_estimators = config.n_estimators,
+        max_depth=config.max_depth,
+        max_features=config.max_features,
+        min_samples_leaf=config.min_samples_leaf,
+        min_samples_split=config.min_samples_split,
+        n_estimators=config.n_estimators,
     )
 
     rfc.fit(X_train, y_train.ravel())
     y_pred = rfc.predict(X_test)
 
-    wandb.log({"conf_mat": wandb.plot.confusion_matrix(y_true=y_test.ravel(),preds=y_pred.ravel())})
+    wandb.log({"conf_mat": wandb.plot.confusion_matrix(y_true=y_test.ravel(), preds=y_pred.ravel())})
 
     wandb.log({"feature_imp": wandb.sklearn.plot_feature_importances(rfc, Predictors)})
 
-    wandb.log({"loss": zero_one_loss(y_test,y_pred)})
+    wandb.log({"loss": zero_one_loss(y_test, y_pred)})
 
     wandb.log({'accuracy': accuracy_score(y_test, y_pred)})
