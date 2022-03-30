@@ -10,10 +10,10 @@ WANDB_PROJECT_NAME = "mlpr_hyperparam_opt"
 
 with wandb.init(project=WANDB_PROJECT_NAME):
     # Import Data
-    df = pd.read_csv('../../../data/df_points/df_points_18_21_class.csv')
+    df = pd.read_csv('../../../data/df_points/df_points_18_21.csv')
 
     # define Target and Predictors
-    TargetVariable = ['idle_time_class']
+    TargetVariable = ['idle_time']
     Predictors = ['bike_id', 'lat', 'lng', 'temp', 'rain', 'snow', 'dt_start', 'hex_enc', 'start_min', 'month', 'day']
     X = df[Predictors].values
     y = df[TargetVariable].values
