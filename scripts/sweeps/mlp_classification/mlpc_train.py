@@ -5,6 +5,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import zero_one_loss
 from sklearn.preprocessing import StandardScaler
+import numpy as np
 
 WANDB_PROJECT_NAME = "mlpc_hyperparam_opt"
 
@@ -25,6 +26,7 @@ with wandb.init(project=WANDB_PROJECT_NAME):
 
     # split dataset
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    labels = ['vs', 's', 'l', 'vl']
 
     # import sweep config
     config = wandb.config
