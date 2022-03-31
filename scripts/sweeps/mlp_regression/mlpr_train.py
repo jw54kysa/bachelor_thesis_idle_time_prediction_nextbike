@@ -49,7 +49,9 @@ with wandb.init(project=WANDB_PROJECT_NAME):
 
     # print(mlp_classification.score(X_test, y_test))
 
-    wandb.sklearn.plot_regressor(mlpr, X_train, X_test, y_train, y_test, model_name='MLPRegressor')
+    wandb.sklearn.plot_regressor(mlpr, X_train, X_test, y_train.ravel(), y_test.ravel(), model_name='MLPRegressor')
+
+    #wandb.sklearn.plot_residuals(model, X, y)
 
     # log data to wandb
     #wandb.log({"conf_mat": wandb.plot.confusion_matrix(y_true=y_test.ravel(), preds=y_pred.ravel())})
