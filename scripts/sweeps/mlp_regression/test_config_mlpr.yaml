@@ -1,0 +1,41 @@
+program: train.py
+method: random
+metric:
+  goal: minimize
+  name: loss
+parameters:
+  learning_rate_init:
+    max: 1.1
+    min: 0.2
+    distribution: uniform
+  hidden_layer_sizes:
+    max: 256
+    min: 4
+    distribution: int_uniform
+  learning_rate:
+    values:
+      - constant
+      - invscaling
+      - adaptive
+    distribution: categorical
+  activation:
+    values:
+      - tanh
+      - identity
+      - logistic
+      - relu
+    distribution: categorical
+  momentum:
+    max: 1.8
+    min: 0.4
+    distribution: uniform
+  solver:
+    values:
+      - sgd
+      - adam
+      - lbfgs
+    distribution: categorical
+  alpha:
+    max: 0.1
+    min: 0.00025
+    distribution: uniform
