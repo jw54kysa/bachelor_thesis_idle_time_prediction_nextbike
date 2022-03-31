@@ -11,7 +11,7 @@ WANDB_PROJECT_NAME = "mlpr_test"
 
 with wandb.init(project=WANDB_PROJECT_NAME):
     # Import Data
-    df = pd.read_csv('../../../data/df_points/df_points_18_21.csv')
+    df = pd.read_csv('../data/df_points/df_points_18_21.csv')
 
     # define Target and Predictors
     TargetVariable = ['idle_time']
