@@ -1,5 +1,6 @@
 program: mlpr_train.py
 method: random
+project: mlpr_hyperparam_opt
 metric:
   goal: minimize
   name: loss

@@ -7,7 +7,7 @@ from sklearn.metrics import r2_score
 from sklearn.preprocessing import StandardScaler
 import random
 
-WANDB_PROJECT_NAME = "test_mlpr_hyperparam_opt"
+WANDB_PROJECT_NAME = "mlpr_hyperparam_opt"
 
 with wandb.init(project=WANDB_PROJECT_NAME):
     # Import Data
@@ -35,13 +35,23 @@ with wandb.init(project=WANDB_PROJECT_NAME):
     config = wandb.config
 
     # define model
-    mlpr = MLPRegressor(config)
+    mlpr = MLPRegressor(hidden_layer_sizes=config.hidden_layer_sizes,
+                        activation=config.activation,
+                        solver=config.solver,
+                        alpha=config.alpha,
+                        learning_rate=config.learning_rate,
+                        momentum=config.momentum,
+                        learning_rate_init=config.learning_rate_init)
 
     # fit and predict
     mlpr.fit(X_train, y_train.ravel())
     y_pred = mlpr.predict(X_test)
 
-    wandb.log({"r2": r2_score(y_test.ravel(), y_pred.ravel())})
-    wandb.log({"mse": mean_squared_error(y_test.ravel(), y_pred.ravel())})
-    #wandb.log({"loss": mlpr.best_loss_})
+    r2 = r2_score(y_test.ravel(), y_pred.ravel())
+    mse = mean_squared_error(y_test.ravel(), y_pred.ravel())
+
+    wandb.log({"r2": r2})
+    wandb.log({"mse": mse})
+
+    wandb.log({"loss": mlpr.best_loss_})
     wandb.log({'accuracy': mlpr.score(X_test, y_test.ravel())})
