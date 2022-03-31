@@ -39,9 +39,11 @@ with wandb.init(project=WANDB_PROJECT_NAME):
            (128, 128, 128)]
     tupel = random.choice(hls)
 
+    config.hidden_layer_sizes = tupel
+
     #wandb.config.hidden_layer_sizes = hls
     # define model
-    mlpr = MLPRegressor(hidden_layer_sizes=tupel,
+    mlpr = MLPRegressor(hidden_layer_sizes=config.hidden_layer_sizes,
                         activation=config.activation,
                         solver=config.solver,
                         alpha=config.alpha,
