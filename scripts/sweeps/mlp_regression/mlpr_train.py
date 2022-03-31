@@ -35,13 +35,11 @@ with wandb.init(project=WANDB_PROJECT_NAME):
     # import sweep config
     config = wandb.config
 
-    hls = [(16, 16), (32, 32), (64, 64), (128, 128), (256, 256), (16, 16, 16), (32, 32, 32), (64, 64, 64),
-           (128, 128, 128)]
-    tupel = random.choice(hls)
-
-    config.hidden_layer_sizes = tupel
-
+    #hls = [(16, 16), (32, 32), (64, 64), (128, 128), (256, 256), (16, 16, 16), (32, 32, 32), (64, 64, 64), (128, 128, 128)]
+    #tupel = random.choice(hls)
+    #config.hidden_layer_sizes = tupel
     #wandb.config.hidden_layer_sizes = hls
+
     # define model
     mlpr = MLPRegressor(hidden_layer_sizes=config.hidden_layer_sizes,
                         activation=config.activation,
