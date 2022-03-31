@@ -47,13 +47,6 @@ with wandb.init(project=WANDB_PROJECT_NAME):
     mlpr.fit(X_train, y_train.ravel())
     y_pred = mlpr.predict(X_test)
 
-    # print(mlp_classification.score(X_test, y_test))
-
-    wandb.sklearn.plot_regressor(mlpr, X_train, X_test, y_train.ravel(), y_test.ravel(), model_name='MLPRegressor')
-
-    #wandb.sklearn.plot_residuals(model, X, y)
-
-    # log data to wandb
-    #wandb.log({"conf_mat": wandb.plot.confusion_matrix(y_true=y_test.ravel(), preds=y_pred.ravel())})
-    #wandb.log({"loss": zero_one_loss(y_test, y_pred)})
-    #wandb.log({'accuracy': accuracy_score(y_test, y_pred)})
+    wandb.log({"params": mlpr.get_params()})
+    wandb.log({"loss": mlpr.best_loss_})
+    wandb.log({'accuracy': mlpr.score(X_test, y_test.ravel())})
