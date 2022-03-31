@@ -1,4 +1,4 @@
-program: train.py
+program: mlpr_train.py
 method: random
 metric:
   goal: minimize
