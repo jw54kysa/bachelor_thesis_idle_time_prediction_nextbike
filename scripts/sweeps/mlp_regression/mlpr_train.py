@@ -1,9 +1,9 @@
 import wandb
 import pandas as pd
 from sklearn.neural_network import MLPRegressor
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import zero_one_loss
+from sklearn.metrics import r2_score
 from sklearn.preprocessing import StandardScaler
 
 WANDB_PROJECT_NAME = "mlpr_hyperparam_opt"
@@ -29,11 +29,15 @@ with wandb.init(project=WANDB_PROJECT_NAME):
 
     # split dataset
     # without , random_state=42
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     # import sweep config
     config = wandb.config
-    #wandb.config.hidden_layer_sizes = [(10,10), (30,30), (60,60, (90,90), (10,10,10), (30,30,30), (60,60,60), (90,90,90)]
+
+    hls = [(16, 16), (32, 32), (64, 64), (128, 128), (256, 256), (16, 16, 16), (32, 32, 32), (64, 64, 64),
+           (128, 128, 128)]
+
+    wandb.config.hidden_layer_sizes = hls
     # define model
     mlpr = MLPRegressor(hidden_layer_sizes=config.hidden_layer_sizes,
                         activation=config.activation,
@@ -47,6 +51,11 @@ with wandb.init(project=WANDB_PROJECT_NAME):
     mlpr.fit(X_train, y_train.ravel())
     y_pred = mlpr.predict(X_test)
 
-    wandb.log({"params": mlpr.get_params()})
+    r2 = r2_score(y_test.ravel(), y_pred.ravel())
+    mse = mean_squared_error(y_test.ravel(), y_pred.ravel())
+
+    wandb.log({"r2": r2})
+    wandb.log({"mse": mse})
+
     wandb.log({"loss": mlpr.best_loss_})
     wandb.log({'accuracy': mlpr.score(X_test, y_test.ravel())})

@@ -5,8 +5,6 @@ metric:
   name: accuracy
   goal: maximize
 parameters:
-  hidden_layer_sizes:
-    values: [8,16,32,64,128]
   activation:
     values: ['identity', 'logistic', 'tanh', 'relu']
   solver:
