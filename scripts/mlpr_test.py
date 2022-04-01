@@ -53,6 +53,5 @@ with wandb.init(project=WANDB_PROJECT_NAME):
 
     wandb.log({"r2": r2})
     wandb.log({"mse": mse})
-
     wandb.log({"loss": mlpr.best_loss_})
     wandb.log({'accuracy': mlpr.score(X_test, y_test.ravel())})

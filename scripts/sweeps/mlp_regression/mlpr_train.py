@@ -5,6 +5,7 @@ from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
 from sklearn.preprocessing import StandardScaler
+import yaml
 import random
 
 WANDB_PROJECT_NAME = "mlpr_hyperparam_opt"
@@ -32,7 +33,13 @@ with wandb.init(project=WANDB_PROJECT_NAME):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     # import sweep config
-    config = wandb.config
+    #config = wandb.config
+    with open('test_config_mlpr.yaml','r') as stream:
+        try:
+            config = yaml.safe_load(stream)
+            print(config)
+        except yaml.YAMLError as ex:
+            print(ex)
 
     # define model
     mlpr = MLPRegressor(hidden_layer_sizes=config.hidden_layer_sizes,
