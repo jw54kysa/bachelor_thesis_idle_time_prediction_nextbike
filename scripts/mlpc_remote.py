@@ -17,10 +17,6 @@ PredictorScaler=StandardScaler()
 PredictorScalerFit=PredictorScaler.fit(X)
 X=PredictorScalerFit.transform(X)
 
-TargetScaler=StandardScaler()
-TargetScalerFit=TargetScaler.fit(y)
-y=TargetScalerFit.transform(y)
-
 
 from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.9, shuffle=False)
