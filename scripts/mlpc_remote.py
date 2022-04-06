@@ -83,7 +83,7 @@ def my_train_func():
     wandb.log({"score_training":score_training, "score_validation":score_validation})
 
 # INIT SWEEP
-sweep_id_rfc = wandb.sweep(sweep_configuration, project="RandomForestClassifier")
+sweep_id_rfc = wandb.sweep(sweep_configuration, project="MultiLayerPerceptronClassification")
 # RUN SWEEP
 wandb.agent(sweep_id_rfc, function=my_train_func)
 
