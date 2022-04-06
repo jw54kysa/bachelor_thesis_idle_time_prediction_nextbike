@@ -67,7 +67,6 @@ def my_train_func():
                                    activation=_activation,
                                    solver=_solver,
                                    alpha=_alpha,
-                                   alpha=_alpha,
                                    learning_rate=_learning_rate,
                                    momentum=_momentum)
 
