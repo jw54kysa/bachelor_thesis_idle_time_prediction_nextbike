@@ -8,7 +8,7 @@ import wandb
 
 idle_time_data = pd.read_csv('../data/final_df_points_18_21_class.csv')
 
-TargetVariable = ['idle_time_class']
+TargetVariable = ['idle_time']
 Predictors = ['bike_id', 'lat', 'lng', 'temp', 'rain', 'snow', 'wind_speed', 'humidity', 'dt_start'
     , 'hex_enc', 'start_min', 'year', 'month', 'day', 'on_station', 'in_zone', 'zone_name_enc']
 
@@ -65,7 +65,8 @@ def my_train_func():
                                   bootstrap=_bootstrap,
                                   max_features=_max_features,
                                   min_samples_leaf=_min_samples_leaf,
-                                  min_samples_split=_min_samples_split)
+                                  min_samples_split=_min_samples_split,
+                                  n_jobs=-1)
 
     model.fit(X_train, y_train.ravel())
     y_pred = model.predict(X_test)
