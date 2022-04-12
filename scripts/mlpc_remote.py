@@ -5,10 +5,11 @@ from sklearn.neural_network import MLPClassifier
 import wandb
 import random
 
-idle_time_data = pd.read_csv('../data/df_points/df_points_18_21_class.csv')
+idle_time_data = pd.read_csv('../data/final_df_points_18_21_class.csv')
 
-TargetVariable = ['idle_time_class']
-Predictors = ['bike_id', 'lat', 'lng', 'temp', 'rain', 'snow', 'dt_start', 'hex_enc', 'start_min', 'month', 'day']
+TargetVariable = ['idle_time']
+Predictors = ['bike_id', 'lat', 'lng', 'temp', 'rain', 'snow', 'wind_speed', 'humidity', 'dt_start',
+              'hex_enc', 'start_min', 'year', 'month', 'day', 'on_station', 'in_zone', 'zone_name_enc']
 
 X = idle_time_data[Predictors].values
 y = idle_time_data[TargetVariable].values
@@ -48,7 +49,8 @@ sweep_configuration = {
 def my_train_func():
     wandb.init()
 
-    hls = [(16, 16), (32, 32), (64, 64), (128, 128),
+    hls = [(16), (32), (64), (128),
+           (16, 16), (32, 32), (64, 64), (128, 128),
            (16, 32, 16), (32, 64, 32), (64, 128, 64),
            (128, 64, 128)]
 
@@ -62,11 +64,12 @@ def my_train_func():
     wandb.config.hidden_layer_sizes = _hidden_layer_sizes
 
     model = MLPClassifier(hidden_layer_sizes=_hidden_layer_sizes,
-                          activation=_activation,
-                          solver=_solver,
-                          alpha=_alpha,
-                          learning_rate=_learning_rate,
-                          momentum=_momentum)
+                         activation=_activation,
+                         solver=_solver,
+                         alpha=_alpha,
+                         learning_rate=_learning_rate,
+                         momentum=_momentum,
+                         early_stopping=True)
 
     model.fit(X_train, y_train.ravel())
     y_pred = model.predict(X_test)
@@ -77,11 +80,9 @@ def my_train_func():
     acc = accuracy_score(y_test.ravel(), y_pred.ravel())
     loss = zero_one_loss(y_test.ravel(), y_pred.ravel())
 
-    # wandb.sklearn.plot_feature_importances(model, Predictors)
 
     wandb.log({"accuracy": acc, "loss": loss})
     wandb.log({"conf_matrix": wandb.plot.confusion_matrix(y_true=y_test.ravel(), preds=y_pred.ravel())})
-    # wandb.log({"feature_imp": wandb.sklearn.plot_feature_importances(model, Predictors)})
     wandb.log({"score_training": score_training, "score_validation": score_validation})
 
 
