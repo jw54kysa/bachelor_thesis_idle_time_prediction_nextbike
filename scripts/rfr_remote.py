@@ -74,13 +74,8 @@ def my_train_func():
     score_training = model.score(X_train, y_train.ravel())
     score_validation = model.score(X_test, y_test.ravel())
     rmse = metrics.mean_squared_error(y_test.ravel(), y_pred.ravel())
-    acc = zero_one_loss(y_test.ravel(), y_pred.ravel())
-    loss = accuracy_score(y_test.ravel(), y_pred.ravel())
 
-    wandb.log({"accuracy": acc})
-    wandb.log({"loss": loss})
     wandb.log({"score_training": score_training, "score_validation": score_validation, "rmse": rmse})
-
 
 # INIT SWEEP
 sweep_id_rfc = wandb.sweep(sweep_configuration_rfr, project="RandomForestRegressor")
