@@ -5,6 +5,9 @@ from sklearn.neural_network import MLPClassifier
 import wandb
 import random
 
+import os
+os.environ["WANDB_CONSOLE"] = "off"
+
 idle_time_data = pd.read_csv('../data/final_df_points_18_21_class.csv')
 
 TargetVariable = ['idle_time']
@@ -24,7 +27,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.9, shuffl
 
 sweep_configuration = {
     "project": "MultiLayerPerceptronClassification",
-    "name": "MLPC-sweep-hidden-layer-sizes",
+    "name": "MLPC-sweep-new-data",
     "metric": {"name": "accuracy", "goal": "maximize"},
     "method": "random",
     "parameters": {

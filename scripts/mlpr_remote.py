@@ -1,5 +1,4 @@
 import pandas as pd
-from matplotlib import pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.neural_network import MLPRegressor
@@ -13,8 +12,8 @@ TargetVariable = ['idle_time']
 Predictors = ['bike_id', 'lat', 'lng', 'temp', 'rain', 'snow', 'wind_speed', 'humidity', 'dt_start',
               'hex_enc', 'start_min', 'year', 'month', 'day', 'on_station', 'in_zone', 'zone_name_enc']
 
-X = idle_time_data[Predictors][:100000].values
-y = idle_time_data[TargetVariable][:100000].values
+X = idle_time_data[Predictors].values
+y = idle_time_data[TargetVariable].values
 
 PredictorScaler = StandardScaler()
 PredictorScalerFit = PredictorScaler.fit(X)
