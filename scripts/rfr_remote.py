@@ -1,8 +1,9 @@
 import pandas as pd
+from numpy import sqrt
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
 import numpy as np
-from sklearn.metrics import zero_one_loss, accuracy_score
+from sklearn.metrics import zero_one_loss, accuracy_score, r2_score, mean_squared_error
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 import wandb
 
@@ -18,7 +19,7 @@ y = idle_time_data[TargetVariable].values
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, shuffle=False)
 
 sweep_configuration_rfr = {
-    "project": "RandomForestRegressor",
+    "project": "RandomForestRegressor_final",
     "name": "my-awesome-sweep",
     "metric": {"name": "accuracy", "goal": "maximize"},
     "method": "random",
@@ -47,6 +48,20 @@ sweep_configuration_rfr = {
     }
 }
 
+def eval_regression(y_test,y_pred):
+    # Metrics
+    # Accuracy, precision, recall
+    r2 = r2_score(y_test, y_pred.ravel())
+
+    mse = mean_squared_error(y_test, y_pred.ravel())
+    rmse = sqrt(mse)
+
+    print('r2: %f' % r2)
+    print('mse: %f' % mse)
+    print('rmse: %f' % rmse)
+
+    return r2, mse, rmse
+
 
 def my_train_func():
     wandb.init()
@@ -71,13 +86,11 @@ def my_train_func():
     model.fit(X_train, y_train.ravel())
     y_pred = model.predict(X_test)
 
-    score_training = model.score(X_train, y_train.ravel())
-    score_validation = model.score(X_test, y_test.ravel())
-    rmse = metrics.mean_squared_error(y_test.ravel(), y_pred.ravel())
+    r2, mse, rmse =eval_regression()
 
-    wandb.log({"score_training": score_training, "score_validation": score_validation, "rmse": rmse})
+    wandb.log({"r2_score": r2, "MSE": mse, "RMSE": rmse})
 
 # INIT SWEEP
-sweep_id_rfc = wandb.sweep(sweep_configuration_rfr, project="RandomForestRegressor")
+sweep_id_rfc = wandb.sweep(sweep_configuration_rfr, project="RandomForestRegressor_final")
 # RUN SWEEP
 wandb.agent(sweep_id_rfc, function=my_train_func)

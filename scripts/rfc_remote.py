@@ -1,9 +1,10 @@
 import pandas as pd
-from sklearn.metrics import zero_one_loss, accuracy_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
 import wandb
 
-idle_time_data = pd.read_csv('../data/final_df_points_18_21_class.csv')
+idle_time_data = pd.read_csv('../data/final_df_points_18_21_class_new_features.csv')
 
 TargetVariable = ['idle_time_class']
 Predictors = ['bike_id', 'lat', 'lng', 'temp', 'rain', 'snow', 'wind_speed', 'humidity', 'dt_start',
@@ -12,14 +13,12 @@ Predictors = ['bike_id', 'lat', 'lng', 'temp', 'rain', 'snow', 'wind_speed', 'hu
 X = idle_time_data[Predictors].values
 y = idle_time_data[TargetVariable].values
 
-from sklearn.model_selection import train_test_split
-
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.9, shuffle=False)
 
 sweep_configuration = {
-    "project": "RandomForestClass",
-    "name": "RFC-sweep-split-inorder-not-scaled",
-    "metric": {"name": "accuracy", "goal": "maximize"},
+    "project": "RandomForestClassifier_final",
+    "name": "RFC-sweep-split-inorder-not-scaled-new-metrics",
+    "metric": {"name": "f1_score", "goal": "maximize"},
     "method": "random",
     "parameters": {
         "n_estimators": {
@@ -46,6 +45,25 @@ sweep_configuration = {
     }
 }
 
+def eval_classification(y_test,y_pred):
+    # Metrics
+    # Accuracy, precision, recall
+    acc = accuracy_score(y_test, y_pred.ravel())
+    macro_precision = precision_score(y_test.ravel(), y_pred.ravel(), average='macro', labels=[1,2,3,4])
+    micro_precision = precision_score(y_test.ravel(), y_pred.ravel(), average='micro', labels=[1,2,3,4])
+    macro_recall = recall_score(y_test.ravel(), y_pred.ravel(), average='macro', labels=[1,2,3,4])
+    micro_recall = recall_score(y_test.ravel(), y_pred.ravel(), average='micro', labels=[1,2,3,4])
+
+    macro_f1 = f1_score(y_test.ravel(), y_pred.ravel(), average='macro', labels=[1,2,3,4])
+    micro_f1 = f1_score(y_test.ravel(), y_pred.ravel(), average='micro', labels=[1,2,3,4])
+
+    print(acc)
+    print(macro_precision, micro_precision)
+    print(macro_recall, micro_recall)
+    print(macro_f1, micro_f1)
+
+    return acc, macro_precision, micro_precision, macro_recall, micro_recall, macro_f1, micro_f1
+
 
 def my_train_func():
     wandb.init()
@@ -70,22 +88,16 @@ def my_train_func():
     model.fit(X_train, y_train.ravel())
     y_pred = model.predict(X_test)
 
-    score_training = model.score(X_train, y_train.ravel())
-    score_validation = model.score(X_test, y_test.ravel())
-
-    acc = accuracy_score(y_test.ravel(), y_pred.ravel())
-    loss = zero_one_loss(y_test.ravel(), y_pred.ravel())
-
-    wandb.sklearn.plot_feature_importances(model, Predictors)
+    acc, macro_precision, micro_precision, macro_recall, micro_recall, macro_f1, micro_f1 = eval_classification(y_test,y_pred)
 
     wandb.log({"accuracy": acc})
     wandb.log({"conf_matrix": wandb.plot.confusion_matrix(y_true=y_test.ravel(), preds=y_pred.ravel())})
     wandb.log({"feature_imp": wandb.sklearn.plot_feature_importances(model, Predictors)})
-    wandb.log({"loss": loss})
-    wandb.log({"score_training": score_training, "score_validation": score_validation})
-
+    wandb.log({"macro_precision": macro_precision, "micro_precision": micro_precision})
+    wandb.log({"macro_recall": macro_recall, "micro_recall": micro_recall})
+    wandb.log({"macro_f1": macro_f1, "micro_f1": micro_f1})
 
 # INIT SWEEP
-sweep_id_rfc = wandb.sweep(sweep_configuration, project="RandomForestClassifier")
+sweep_id_rfc = wandb.sweep(sweep_configuration, project="RandomForestClassifier_final")
 # RUN SWEEP
 wandb.agent(sweep_id_rfc, function=my_train_func)
