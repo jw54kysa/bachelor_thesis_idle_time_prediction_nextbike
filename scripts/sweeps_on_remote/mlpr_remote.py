@@ -26,7 +26,7 @@ y = TargetScalerFit.transform(y)
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.9, shuffle=False)
 
 sweep_configuration = {
-    "project": "MultiLayerPerceptronRegression-new-data",
+    "project": "MLP-Regression",
     "name": "MLPC-sweep-new-data",
     "metric": {"name": "accuracy", "goal": "maximize"},
     "method": "random",
@@ -85,6 +85,6 @@ def my_train_func():
 
 
 # INIT SWEEP
-sweep_id_rfc = wandb.sweep(sweep_configuration, project="MultiLayerPerceptronRegression-new-data")
+sweep_id_rfc = wandb.sweep(sweep_configuration, project="MLP-Regression")
 # RUN SWEEP
 wandb.agent(sweep_id_rfc, function=my_train_func)
