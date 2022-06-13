@@ -1,6 +1,8 @@
+from math import sqrt
+
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import r2_score, mean_squared_error
+from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 from sklearn.neural_network import MLPRegressor
 from sklearn.model_selection import train_test_split
 import wandb
@@ -28,7 +30,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.9, shuffl
 sweep_configuration = {
     "project": "MLP-Regression",
     "name": "MLPC-sweep-new-data",
-    "metric": {"name": "accuracy", "goal": "maximize"},
+    "metric": {"name": "r2_score", "goal": "maximize"},
     "method": "random",
     "parameters": {
         "activation": {
@@ -48,6 +50,21 @@ sweep_configuration = {
         }
     }
 }
+
+def eval_regression(y_test,y_pred):
+    # Metrics
+    # r2, mae, mse, rmse
+    r2 = r2_score(y_test, y_pred.ravel())
+    mae = mean_absolute_error(y_test, y_pred.ravel())
+    mse = mean_squared_error(y_test, y_pred.ravel())
+    rmse = sqrt(mse)
+
+    print('r2: %f' % r2)
+    print('mae: %f' % mae)
+    print('mse: %f' % mse)
+    print('rmse: %f' % rmse)
+
+    return r2, mse, rmse
 
 
 def my_train_func():
@@ -78,10 +95,9 @@ def my_train_func():
     model.fit(X_train, y_train.ravel())
     y_pred = model.predict(X_test)
 
-    r2 = r2_score(y_test, y_pred.ravel())
-    mse = mean_squared_error(y_test, y_pred.ravel())
+    r2, mse, rmse = eval_regression(y_test, y_pred)
 
-    wandb.log({"r2": r2, "mse": mse})
+    wandb.log({"r2_score": r2, "MSE": mse, "RMSE": rmse})
 
 
 # INIT SWEEP

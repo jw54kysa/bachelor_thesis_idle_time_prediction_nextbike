@@ -5,12 +5,9 @@ from sklearn.neural_network import MLPClassifier
 import wandb
 import random
 
-import os
-os.environ["WANDB_CONSOLE"] = "off"
-
 idle_time_data = pd.read_csv('../../data/final_df_points_18_21_class.csv')
 
-TargetVariable = ['idle_time']
+TargetVariable = ['idle_time_class']
 Predictors = ['bike_id', 'lat', 'lng', 'temp', 'rain', 'snow', 'wind_speed', 'humidity', 'dt_start',
               'hex_enc', 'start_min', 'year', 'month', 'day', 'on_station', 'in_zone', 'zone_name_enc']
 
@@ -26,7 +23,7 @@ from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.9, shuffle=False)
 
 sweep_configuration = {
-    "project": "MultiLayerPerceptronClassification",
+    "project": "MLP-Classification",
     "name": "MLPC-sweep-new-data",
     "metric": {"name": "accuracy", "goal": "maximize"},
     "method": "random",
@@ -48,6 +45,25 @@ sweep_configuration = {
         }
     }
 }
+
+def eval_classification(y_test,y_pred):
+    # Metrics
+    # Accuracy, precision, recall
+    acc = accuracy_score(y_test, y_pred.ravel())
+    macro_precision = precision_score(y_test.ravel(), y_pred.ravel(), average='macro', labels=[1,2,3,4])
+    micro_precision = precision_score(y_test.ravel(), y_pred.ravel(), average='micro', labels=[1,2,3,4])
+    macro_recall = recall_score(y_test.ravel(), y_pred.ravel(), average='macro', labels=[1,2,3,4])
+    micro_recall = recall_score(y_test.ravel(), y_pred.ravel(), average='micro', labels=[1,2,3,4])
+
+    macro_f1 = f1_score(y_test.ravel(), y_pred.ravel(), average='macro', labels=[1,2,3,4])
+    micro_f1 = f1_score(y_test.ravel(), y_pred.ravel(), average='micro', labels=[1,2,3,4])
+
+    print(acc)
+    print(macro_precision, micro_precision)
+    print(macro_recall, micro_recall)
+    print(macro_f1, micro_f1)
+
+    return acc, macro_precision, micro_precision, macro_recall, micro_recall, macro_f1, micro_f1
 
 def my_train_func():
     wandb.init()
@@ -77,19 +93,17 @@ def my_train_func():
     model.fit(X_train, y_train.ravel())
     y_pred = model.predict(X_test)
 
-    score_training = model.score(X_train, y_train.ravel())
-    score_validation = model.score(X_test, y_test.ravel())
+    acc, macro_precision, micro_precision, macro_recall, micro_recall, macro_f1, micro_f1 = eval_classification(y_test,y_pred)
 
-    acc = accuracy_score(y_test.ravel(), y_pred.ravel())
-    loss = zero_one_loss(y_test.ravel(), y_pred.ravel())
-
-
-    wandb.log({"accuracy": acc, "loss": loss})
+    wandb.log({"accuracy": acc})
     wandb.log({"conf_matrix": wandb.plot.confusion_matrix(y_true=y_test.ravel(), preds=y_pred.ravel())})
-    wandb.log({"score_training": score_training, "score_validation": score_validation})
+    wandb.log({"feature_imp": wandb.sklearn.plot_feature_importances(model, Predictors)})
+    wandb.log({"macro_precision": macro_precision, "micro_precision": micro_precision})
+    wandb.log({"macro_recall": macro_recall, "micro_recall": micro_recall})
+    wandb.log({"macro_f1": macro_f1, "micro_f1": micro_f1})
 
 
 # INIT SWEEP
-sweep_id_rfc = wandb.sweep(sweep_configuration, project="MultiLayerPerceptronClassification")
+sweep_id_rfc = wandb.sweep(sweep_configuration, project="MLP-Classification")
 # RUN SWEEP
 wandb.agent(sweep_id_rfc, function=my_train_func)
