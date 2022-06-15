@@ -1,7 +1,8 @@
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import zero_one_loss, accuracy_score
+from sklearn.metrics import zero_one_loss, accuracy_score, precision_score, recall_score, f1_score
 from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import train_test_split
 import wandb
 import random
 
@@ -17,8 +18,6 @@ y = idle_time_data[TargetVariable].values
 PredictorScaler = StandardScaler()
 PredictorScalerFit = PredictorScaler.fit(X)
 X = PredictorScalerFit.transform(X)
-
-from sklearn.model_selection import train_test_split
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.9, shuffle=False)
 
