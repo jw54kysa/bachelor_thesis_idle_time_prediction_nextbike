@@ -96,7 +96,6 @@ def my_train_func():
 
     wandb.log({"accuracy": acc})
     wandb.log({"conf_matrix": wandb.plot.confusion_matrix(y_true=y_test.ravel(), preds=y_pred.ravel())})
-    wandb.log({"feature_imp": wandb.sklearn.plot_feature_importances(model, Predictors)})
     wandb.log({"macro_precision": macro_precision, "micro_precision": micro_precision})
     wandb.log({"macro_recall": macro_recall, "micro_recall": micro_recall})
     wandb.log({"macro_f1": macro_f1, "micro_f1": micro_f1})
