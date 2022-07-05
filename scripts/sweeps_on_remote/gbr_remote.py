@@ -2,7 +2,7 @@ import pandas as pd
 from numpy import sqrt
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import GradientBoostingRegressor
 import wandb
 
 idle_time_data = pd.read_csv('../../data/final_df_points_18_21_class.csv')
@@ -17,22 +17,28 @@ y = idle_time_data[TargetVariable].values
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.9, shuffle=False)
 
 sweep_configuration_rfr = {
-    "project": "RF-Regression",
+    "project": "GB-Regression",
     "name": "my-awesome-sweep",
     "metric": {"name": "r2_score", "goal": "maximize"},
     "method": "random",
     "parameters": {
+        "loss": {
+            "values": ['squared_error', 'absolute_error', 'huber', 'quantile']
+        },
+        "learning_rate": {
+            "values": [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.13,0.15,0.2]
+        },
         "n_estimators": {
-            "values": [8, 14, 19, 24, 32, 41, 54]
+            "values": [8, 14, 19, 24, 32, 41, 54, 67, 75, 89, 102, 123]
         },
         "criterion": {
-            "values": ['squared_error', 'absolute_error', 'poisson']
+            "values": ['friedman_mse', 'squared_error', 'mse']
+        },
+        "alpha": {
+            "values": [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05]
         },
         "max_depth": {
-            "values": [2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, None]
-        },
-        "bootstrap": {
-            "values": [True, False]
+            "values": [2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, None]
         },
         "max_features": {
             "values": ['auto', 'sqrt', 'log2']
@@ -66,21 +72,25 @@ def my_train_func():
     wandb.init()
 
     _n_estimators = wandb.config.n_estimators
+    _loss = wandb.config.loss
+    _alpha = wandb.config.alpha
+    _learning_rate = wandb.config.learning_rate
+
     _criterion = wandb.config.criterion
     _max_depth = wandb.config.max_depth
-    _bootstrap = wandb.config.bootstrap
     _max_features = wandb.config.max_features
     _min_samples_leaf = wandb.config.min_samples_leaf
     _min_samples_split = wandb.config.min_samples_split
 
-    model = RandomForestRegressor(n_estimators=_n_estimators,
-                                  criterion=_criterion,
-                                  max_depth=_max_depth,
-                                  bootstrap=_bootstrap,
-                                  max_features=_max_features,
-                                  min_samples_leaf=_min_samples_leaf,
-                                  min_samples_split=_min_samples_split,
-                                  n_jobs=2)
+    model = GradientBoostingRegressor(n_estimators=_n_estimators,
+                                    loss = _loss,
+                                    alpha = _alpha,
+                                    learning_rate = _learning_rate,
+                                    criterion=_criterion,
+                                    max_depth=_max_depth,
+                                    max_features=_max_features,
+                                    min_samples_leaf=_min_samples_leaf,
+                                    min_samples_split=_min_samples_split,)
 
     model.fit(X_train, y_train.ravel())
     y_pred = model.predict(X_test)
@@ -90,6 +100,6 @@ def my_train_func():
     wandb.log({"r2_score": r2, "MSE": mse, "RMSE": rmse, "MAE" : mae})
 
 # INIT SWEEP
-sweep_id_rfc = wandb.sweep(sweep_configuration_rfr, project="RF-Regression")
+sweep_id_rfc = wandb.sweep(sweep_configuration_rfr, project="GB-Regression")
 # RUN SWEEP
 wandb.agent(sweep_id_rfc, function=my_train_func)

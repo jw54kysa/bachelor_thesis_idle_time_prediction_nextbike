@@ -45,24 +45,20 @@ sweep_configuration = {
     }
 }
 
-def eval_classification(y_test,y_pred):
+def eval_classification(y_test,y_pred,labels):
     # Metrics
-    # Accuracy, precision, recall
     acc = accuracy_score(y_test, y_pred.ravel())
-    macro_precision = precision_score(y_test.ravel(), y_pred.ravel(), average='macro', labels=[1,2,3,4])
-    micro_precision = precision_score(y_test.ravel(), y_pred.ravel(), average='micro', labels=[1,2,3,4])
-    macro_recall = recall_score(y_test.ravel(), y_pred.ravel(), average='macro', labels=[1,2,3,4])
-    micro_recall = recall_score(y_test.ravel(), y_pred.ravel(), average='micro', labels=[1,2,3,4])
+    macro_precision = precision_score(y_test.ravel(), y_pred.ravel(), average='macro', labels=labels)
+    macro_recall = recall_score(y_test.ravel(), y_pred.ravel(), average='macro', labels=labels)
 
-    macro_f1 = f1_score(y_test.ravel(), y_pred.ravel(), average='macro', labels=[1,2,3,4])
-    micro_f1 = f1_score(y_test.ravel(), y_pred.ravel(), average='micro', labels=[1,2,3,4])
+    macro_f1 = f1_score(y_test.ravel(), y_pred.ravel(), average='macro', labels=labels)
 
     print(acc)
-    print(macro_precision, micro_precision)
-    print(macro_recall, micro_recall)
-    print(macro_f1, micro_f1)
+    print(macro_precision)
+    print(macro_recall)
+    print(macro_f1)
 
-    return acc, macro_precision, micro_precision, macro_recall, micro_recall, macro_f1, micro_f1
+    return acc, macro_precision, macro_recall, macro_f1
 
 def my_train_func():
     wandb.init()
@@ -73,6 +69,7 @@ def my_train_func():
            (128, 64, 128)]
 
     _hidden_layer_sizes = random.choice(hls)
+    print(_hidden_layer_sizes)
     _activation = wandb.config.activation
     _solver = wandb.config.solver
     _alpha = wandb.config.alpha
@@ -92,13 +89,13 @@ def my_train_func():
     model.fit(X_train, y_train.ravel())
     y_pred = model.predict(X_test)
 
-    acc, macro_precision, micro_precision, macro_recall, micro_recall, macro_f1, micro_f1 = eval_classification(y_test,y_pred)
+    acc, macro_precision, macro_recall, macro_f1 = eval_classification(y_test,y_pred,[1,2,3,4])
 
     wandb.log({"accuracy": acc})
     wandb.log({"conf_matrix": wandb.plot.confusion_matrix(y_true=y_test.ravel(), preds=y_pred.ravel())})
-    wandb.log({"macro_precision": macro_precision, "micro_precision": micro_precision})
-    wandb.log({"macro_recall": macro_recall, "micro_recall": micro_recall})
-    wandb.log({"macro_f1": macro_f1, "micro_f1": micro_f1})
+    wandb.log({"macro_precision": macro_precision})
+    wandb.log({"macro_recall": macro_recall})
+    wandb.log({"macro_f1": macro_f1})
 
 
 # INIT SWEEP

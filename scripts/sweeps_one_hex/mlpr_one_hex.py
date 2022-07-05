@@ -10,6 +10,9 @@ import random
 
 idle_time_data = pd.read_csv('../../data/final_df_points_18_21_class.csv')
 
+#Augustusplatz
+idle_time_data = idle_time_data[idle_time_data['hex_id'] == '881f1a8cb7fffff']
+
 TargetVariable = ['idle_time']
 Predictors = ['bike_id', 'lat', 'lng', 'temp', 'rain', 'snow', 'wind_speed', 'humidity', 'dt_start',
               'hex_enc', 'start_min', 'year', 'month', 'day', 'on_station', 'in_zone', 'zone_name_enc']
@@ -21,14 +24,10 @@ PredictorScaler = StandardScaler()
 PredictorScalerFit = PredictorScaler.fit(X)
 X = PredictorScalerFit.transform(X)
 
-#TargetScaler = StandardScaler()
-#TargetScalerFit = TargetScaler.fit(y)
-#y = TargetScalerFit.transform(y)
-
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.9, shuffle=False)
 
 sweep_configuration = {
-    "project": "MLP-Regression",
+    "project": "MLP-Regression-One-Hex",
     "name": "MLPC-sweep-new-data",
     "metric": {"name": "r2_score", "goal": "maximize"},
     "method": "random",
@@ -64,7 +63,7 @@ def eval_regression(y_test,y_pred):
     print('mse: %f' % mse)
     print('rmse: %f' % rmse)
 
-    return r2, mse, rmse, mae
+    return r2, mse, rmse
 
 
 def my_train_func():
@@ -91,17 +90,18 @@ def my_train_func():
                          alpha=_alpha,
                          learning_rate=_learning_rate,
                          momentum=_momentum,
-                         early_stopping=True)
+                         early_stopping=True,
+                         max_iter=600)
 
     model.fit(X_train, y_train.ravel())
     y_pred = model.predict(X_test)
 
-    r2, mse, rmse, mae = eval_regression(y_test, y_pred)
+    r2, mse, rmse = eval_regression(y_test, y_pred)
 
-    wandb.log({"r2_score": r2, "MSE": mse, "RMSE": rmse, "MAE": mae})
+    wandb.log({"r2_score": r2, "MSE": mse, "RMSE": rmse})
 
 
 # INIT SWEEP
-sweep_id_rfc = wandb.sweep(sweep_configuration, project="MLP-Regression")
+sweep_id_rfc = wandb.sweep(sweep_configuration, project="MLP-Regression-One-Hex")
 # RUN SWEEP
 wandb.agent(sweep_id_rfc, function=my_train_func)

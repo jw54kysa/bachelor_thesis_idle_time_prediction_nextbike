@@ -1,10 +1,35 @@
 import pandas as pd
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import zero_one_loss, accuracy_score, precision_score, recall_score, f1_score
+from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
 import wandb
+import random
 
 idle_time_data = pd.read_csv('../../data/final_df_points_18_21_class.csv')
+
+#Augustusplatz
+idle_time_data = idle_time_data[idle_time_data['hex_id'] == '881f1a8cb7fffff']
+
+### add classes
+quantile = idle_time_data['idle_time'].quantile([.25, .5,.75,1]).values
+print('Quantile: ',quantile)
+
+
+def f(row):
+    if row['idle_time'] < quantile[0]:
+        val = 1
+    elif row['idle_time'] < quantile[1]:
+        val = 2
+    elif row['idle_time'] < quantile[2]:
+        val = 3
+    else:
+        val = 4
+    return val
+
+idle_time_data['idle_time_class'] = idle_time_data.apply(f, axis=1)
+
+#prep data
 
 TargetVariable = ['idle_time_class']
 Predictors = ['bike_id', 'lat', 'lng', 'temp', 'rain', 'snow', 'wind_speed', 'humidity', 'dt_start',
@@ -13,34 +38,32 @@ Predictors = ['bike_id', 'lat', 'lng', 'temp', 'rain', 'snow', 'wind_speed', 'hu
 X = idle_time_data[Predictors].values
 y = idle_time_data[TargetVariable].values
 
+PredictorScaler = StandardScaler()
+PredictorScalerFit = PredictorScaler.fit(X)
+X = PredictorScalerFit.transform(X)
+
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.9, shuffle=False)
 
 sweep_configuration = {
-    "project": "RF-Classification",
-    "name": "my-awesome-sweep-rf",
-    "metric": {"name": "f1_score", "goal": "maximize"},
+    "project": "MLP-Classification-One-Hex",
+    "name": "MLPC-sweep-onehex_classes",
+    "metric": {"name": "accuracy", "goal": "maximize"},
     "method": "random",
     "parameters": {
-        "n_estimators": {
-            "values": [8, 14, 19, 24, 32, 41, 54]
+        "activation": {
+            "values": ['identity', 'logistic', 'tanh', 'relu']
         },
-        "criterion": {
-            "values": ['entropy', 'gini']
+        "solver": {
+            "values": ['lbfgs', 'sgd', 'adam']
         },
-        "max_depth": {
-            "values": [2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, None]
+        "alpha": {
+            "values": [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05]
         },
-        "bootstrap": {
-            "values": [True, False]
+        "learning_rate": {
+            "values": ['constant', 'invscaling', 'adaptive']
         },
-        "max_features": {
-            "values": ['auto', 'sqrt', 'log2']
-        },
-        "min_samples_leaf": {
-            "values": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 40, 50, 60]
-        },
-        "min_samples_split": {
-            "values": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 18, 20, 25, 30, 40, 50, 60]
+        "momentum": {
+            "values": [0.9, 0.8, 0.7, 0.6, 0.5]
         }
     }
 }
@@ -64,26 +87,31 @@ def eval_classification(y_test,y_pred):
 
     return acc, macro_precision, micro_precision, macro_recall, micro_recall, macro_f1, micro_f1
 
-
 def my_train_func():
     wandb.init()
 
-    _n_estimators = wandb.config.n_estimators
-    _criterion = wandb.config.criterion
-    _max_depth = wandb.config.max_depth
-    _bootstrap = wandb.config.bootstrap
-    _max_features = wandb.config.max_features
-    _min_samples_leaf = wandb.config.min_samples_leaf
-    _min_samples_split = wandb.config.min_samples_split
+    hls = [(16), (32), (64), (128),
+           (16, 16), (32, 32), (64, 64), (128, 128),
+           (16, 32, 16), (32, 64, 32), (64, 128, 64),
+           (128, 64, 128)]
 
-    model = RandomForestClassifier(n_estimators=_n_estimators,
-                                   criterion=_criterion,
-                                   max_depth=_max_depth,
-                                   bootstrap=_bootstrap,
-                                   max_features=_max_features,
-                                   min_samples_leaf=_min_samples_leaf,
-                                   min_samples_split=_min_samples_split,
-                                   n_jobs=-1)
+    _hidden_layer_sizes = random.choice(hls)
+    print(_hidden_layer_sizes)
+    _activation = wandb.config.activation
+    _solver = wandb.config.solver
+    _alpha = wandb.config.alpha
+    _learning_rate = wandb.config.learning_rate
+    _momentum = wandb.config.momentum
+
+    wandb.config.hidden_layer_sizes = _hidden_layer_sizes
+
+    model = MLPClassifier(hidden_layer_sizes=_hidden_layer_sizes,
+                         activation=_activation,
+                         solver=_solver,
+                         alpha=_alpha,
+                         learning_rate=_learning_rate,
+                         momentum=_momentum,
+                         early_stopping=True)
 
     model.fit(X_train, y_train.ravel())
     y_pred = model.predict(X_test)
@@ -92,12 +120,12 @@ def my_train_func():
 
     wandb.log({"accuracy": acc})
     wandb.log({"conf_matrix": wandb.plot.confusion_matrix(y_true=y_test.ravel(), preds=y_pred.ravel())})
-    wandb.log({"feature_imp": wandb.sklearn.plot_feature_importances(model, Predictors)})
     wandb.log({"macro_precision": macro_precision, "micro_precision": micro_precision})
     wandb.log({"macro_recall": macro_recall, "micro_recall": micro_recall})
     wandb.log({"macro_f1": macro_f1, "micro_f1": micro_f1})
 
+
 # INIT SWEEP
-sweep_id_rfc = wandb.sweep(sweep_configuration, project="RF-Classification")
+sweep_id_rfc = wandb.sweep(sweep_configuration, project="MLP-Classification-One-Hex")
 # RUN SWEEP
 wandb.agent(sweep_id_rfc, function=my_train_func)

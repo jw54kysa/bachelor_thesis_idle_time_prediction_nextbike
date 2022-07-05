@@ -1,18 +1,26 @@
-from math import sqrt
-
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
-from sklearn.neural_network import MLPRegressor
+from sklearn.metrics import zero_one_loss, accuracy_score, precision_score, recall_score, f1_score
+from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
 import wandb
 import random
 
 idle_time_data = pd.read_csv('../../data/final_df_points_18_21_class.csv')
 
-TargetVariable = ['idle_time']
+def get_binary_class(row):
+    if row['idle_time'] < 1439:
+        val = '1day'
+    else:
+        val = 'longer'
+    return val
+
+idle_time_data['idle_time_class_binary'] = idle_time_data.apply(get_binary_class, axis=1)
+
+TargetVariable = ['idle_time_class_binary']
 Predictors = ['bike_id', 'lat', 'lng', 'temp', 'rain', 'snow', 'wind_speed', 'humidity', 'dt_start',
               'hex_enc', 'start_min', 'year', 'month', 'day', 'on_station', 'in_zone', 'zone_name_enc']
+
 
 X = idle_time_data[Predictors].values
 y = idle_time_data[TargetVariable].values
@@ -21,16 +29,12 @@ PredictorScaler = StandardScaler()
 PredictorScalerFit = PredictorScaler.fit(X)
 X = PredictorScalerFit.transform(X)
 
-#TargetScaler = StandardScaler()
-#TargetScalerFit = TargetScaler.fit(y)
-#y = TargetScalerFit.transform(y)
-
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.9, shuffle=False)
 
 sweep_configuration = {
-    "project": "MLP-Regression",
-    "name": "MLPC-sweep-new-data",
-    "metric": {"name": "r2_score", "goal": "maximize"},
+    "project": "MLP-Classification",
+    "name": "MLPC-sweep-binary-1d",
+    "metric": {"name": "accuracy", "goal": "maximize"},
     "method": "random",
     "parameters": {
         "activation": {
@@ -51,21 +55,24 @@ sweep_configuration = {
     }
 }
 
-def eval_regression(y_test,y_pred):
+def eval_classification(y_test,y_pred,labels):
     # Metrics
-    # r2, mae, mse, rmse
-    r2 = r2_score(y_test, y_pred.ravel())
-    mae = mean_absolute_error(y_test, y_pred.ravel())
-    mse = mean_squared_error(y_test, y_pred.ravel())
-    rmse = sqrt(mse)
+    # Accuracy, precision, recall
+    acc = accuracy_score(y_test, y_pred.ravel())
+    macro_precision = precision_score(y_test.ravel(), y_pred.ravel(), average='macro', labels=labels)
+    micro_precision = precision_score(y_test.ravel(), y_pred.ravel(), average='micro', labels=labels)
+    macro_recall = recall_score(y_test.ravel(), y_pred.ravel(), average='macro', labels=labels)
+    micro_recall = recall_score(y_test.ravel(), y_pred.ravel(), average='micro', labels=labels)
 
-    print('r2: %f' % r2)
-    print('mae: %f' % mae)
-    print('mse: %f' % mse)
-    print('rmse: %f' % rmse)
+    macro_f1 = f1_score(y_test.ravel(), y_pred.ravel(), average='macro', labels=labels)
+    micro_f1 = f1_score(y_test.ravel(), y_pred.ravel(), average='micro', labels=labels)
 
-    return r2, mse, rmse, mae
+    print(acc)
+    print(macro_precision, micro_precision)
+    print(macro_recall, micro_recall)
+    print(macro_f1, micro_f1)
 
+    return acc, macro_precision, micro_precision, macro_recall, micro_recall, macro_f1, micro_f1
 
 def my_train_func():
     wandb.init()
@@ -85,7 +92,7 @@ def my_train_func():
 
     wandb.config.hidden_layer_sizes = _hidden_layer_sizes
 
-    model = MLPRegressor(hidden_layer_sizes=_hidden_layer_sizes,
+    model = MLPClassifier(hidden_layer_sizes=_hidden_layer_sizes,
                          activation=_activation,
                          solver=_solver,
                          alpha=_alpha,
@@ -96,12 +103,16 @@ def my_train_func():
     model.fit(X_train, y_train.ravel())
     y_pred = model.predict(X_test)
 
-    r2, mse, rmse, mae = eval_regression(y_test, y_pred)
+    acc, macro_precision, micro_precision, macro_recall, micro_recall, macro_f1, micro_f1 = eval_classification(y_test,y_pred,["< 1day","> 1day"])
 
-    wandb.log({"r2_score": r2, "MSE": mse, "RMSE": rmse, "MAE": mae})
+    wandb.log({"accuracy": acc})
+    wandb.log({"conf_matrix": wandb.plot.confusion_matrix(y_true=y_test.ravel(), preds=y_pred.ravel())})
+    wandb.log({"macro_precision": macro_precision, "micro_precision": micro_precision})
+    wandb.log({"macro_recall": macro_recall, "micro_recall": micro_recall})
+    wandb.log({"macro_f1": macro_f1, "micro_f1": micro_f1})
 
 
 # INIT SWEEP
-sweep_id_rfc = wandb.sweep(sweep_configuration, project="MLP-Regression")
+sweep_id_rfc = wandb.sweep(sweep_configuration, project="MLP-Classification")
 # RUN SWEEP
 wandb.agent(sweep_id_rfc, function=my_train_func)
