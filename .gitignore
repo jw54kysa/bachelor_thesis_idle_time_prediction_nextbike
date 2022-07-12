@@ -2,7 +2,7 @@
 *.csv
 *.json
 *.pkl
-scripts/.ipynb_checkpoints/
+*scripts/.ipynb_checkpoints/
 .DS_Store
 # exclude idea
 *.xml
@@ -11,3 +11,4 @@ scripts/.ipynb_checkpoints/
 scripts/wandb/
 *wandb/
 *.ipynb_checkpoints/
+.idea/
