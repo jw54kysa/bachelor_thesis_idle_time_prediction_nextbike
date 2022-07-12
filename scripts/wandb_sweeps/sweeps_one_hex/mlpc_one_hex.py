@@ -1,17 +1,17 @@
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import zero_one_loss, accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
 import wandb
 import random
 
-idle_time_data = pd.read_csv('../../data/final_df_points_18_21_class.csv')
+idle_time_data = pd.read_csv('../../../data/final_df_points_18_21_class.csv')
 
 #Augustusplatz
 idle_time_data = idle_time_data[idle_time_data['hex_id'] == '881f1a8cb7fffff']
 
-### add classes
+### add classes for Hexagon
 quantile = idle_time_data['idle_time'].quantile([.25, .5,.75,1]).values
 print('Quantile: ',quantile)
 

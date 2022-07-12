@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 import wandb
 import random
 
-idle_time_data = pd.read_csv('../../data/final_df_points_18_21_class.csv')
+idle_time_data = pd.read_csv('../../../data/final_df_points_18_21_class.csv')
 
 #Augustusplatz
 idle_time_data = idle_time_data[idle_time_data['hex_id'] == '881f1a8cb7fffff']
