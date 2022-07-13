@@ -12,3 +12,5 @@ scripts/wandb/
 *wandb/
 *.ipynb_checkpoints/
 .idea/
+.data/
+.flexzones/
